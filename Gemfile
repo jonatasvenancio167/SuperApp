@@ -12,6 +12,9 @@ gem "puma", ">= 5.0"
 gem "redis", ">= 4.0.1"
 gem "sidekiq", "~> 7.0"
 gem "connection_pool", "~> 2.4"
+gem "blueprinter", "~> 1.0"
+gem "kaminari", "~> 1.2"
+gem "dotenv-rails", "~> 3.1"
 
 # Use Kredis to get higher-level data types in Redis [https://github.com/rails/kredis]
 # gem "kredis"
@@ -24,6 +27,8 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
+
+gem "faker", "~> 3.2"
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
