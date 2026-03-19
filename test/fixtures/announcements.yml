@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  school: one
+  title: MyString
+  content: MyText
+  attachment_url: MyString
+  scope: MyString
+  status: MyString
+  sent_at: 2026-03-19 01:25:02
+
+two:
+  school: two
+  title: MyString
+  content: MyText
+  attachment_url: MyString
+  scope: MyString
+  status: MyString
+  sent_at: 2026-03-19 01:25:02

@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  announcement: one
+  guardian: one
+  read: false
+  read_at: 2026-03-19 01:25:09
+
+two:
+  announcement: two
+  guardian: two
+  read: false
+  read_at: 2026-03-19 01:25:09
