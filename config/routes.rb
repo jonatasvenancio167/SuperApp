@@ -1,10 +1,28 @@
 Rails.application.routes.draw do
-  resources :delivery_logs
-  resources :announcements
-  resources :guardians
-  resources :students
-  resources :classrooms
-  resources :schools
+  namespace :api do
+    namespace :v1 do
+
+      resources :schools,    only: [:index, :show]
+      resources :classrooms, only: [:index, :show]
+      resources :students,   only: [:index, :show]
+      resources :guardians,  only: [:index, :show]
+
+      resources :announcements do
+        member do
+          post :send,  action: :send_announcement
+          get  :stats, action: :stats
+        end
+      end
+
+      resources :delivery_logs, only: [] do
+        member do
+          post :read
+        end
+      end
+
+    end
+  end
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
