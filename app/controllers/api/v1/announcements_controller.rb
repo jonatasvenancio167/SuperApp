@@ -1,5 +1,5 @@
 class Api::V1::AnnouncementsController < Api::V1::ApplicationController
-  before_action :set_announcement, only: %i[ show update destroy send_announcement stats delivery_logs]
+  before_action :set_announcement, only: %i[ update destroy send_announcement stats delivery_logs ]
 
   # GET /api/v1/announcements
   def index
@@ -16,6 +16,10 @@ class Api::V1::AnnouncementsController < Api::V1::ApplicationController
 
   # GET /api/v1/announcements/1
   def show
+    @announcement = @current_school.announcements
+                                   .includes(:classrooms, delivery_logs: :guardian)
+                                   .find(params[:id])
+
     render json: AnnouncementSerializer.render(@announcement, view: :with_stats)
   end
 
