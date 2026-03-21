@@ -38,7 +38,7 @@ class AnnouncementCreator
   def attach_recipients!(announcement)
     case announcement.scope
     when "classrooms"
-      ids = Array(@params[:recipient_ids]).compact.uniq
+      ids = Array(@params[:classroom_ids]).compact.uniq
       raise ArgumentError, "Deve informar pelo menos uma turma" if ids.empty?
       
       validate_classrooms_belong_to_school!(ids)
