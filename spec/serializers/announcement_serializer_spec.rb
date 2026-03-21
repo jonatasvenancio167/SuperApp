@@ -1,4 +1,4 @@
-require 'rails_helper'
+ require 'rails_helper'
 
 RSpec.describe AnnouncementSerializer, type: :serializer do
   let(:school) { create(:school) }
