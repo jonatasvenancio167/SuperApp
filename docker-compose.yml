@@ -43,8 +43,11 @@ services:
       DATABASE_USER: postgres
       DATABASE_PASSWORD: password
       RAILS_ENV: development
+      REDIS_URL: redis://redis:6379/0
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     stdin_open: true
     tty: true

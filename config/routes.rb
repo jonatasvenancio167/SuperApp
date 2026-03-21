@@ -1,16 +1,21 @@
+require "sidekiq/web"
+
 Rails.application.routes.draw do
+  mount Sidekiq::Web => "/sidekiq"
+
   namespace :api do
     namespace :v1 do
 
+      resources :classrooms
       resources :schools,    only: [:index, :show]
-      resources :classrooms, only: [:index, :show]
-      resources :students,   only: [:index, :show]
+      resources :students
       resources :guardians,  only: [:index, :show]
 
       resources :announcements do
         member do
           post :send,  action: :send_announcement
           get  :stats, action: :stats
+          get  :delivery_logs, action: :delivery_logs
         end
       end
 
