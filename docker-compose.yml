@@ -69,6 +69,24 @@ services:
       redis:
         condition: service_healthy
 
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/rails
+      - bundle_cache:/usr/local/bundle
+    environment:
+      RAILS_ENV: test
+      DATABASE_HOST: db
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: password
+      DATABASE_URL: postgres://postgres:password@db:5432/superapp_test
+    depends_on:
+      db:
+        condition: service_healthy
+    command: [ "bundle", "exec", "rspec" ]
+
 volumes:
   postgres_data:
   redis_data:
