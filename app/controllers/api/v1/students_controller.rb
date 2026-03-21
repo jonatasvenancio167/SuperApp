@@ -1,30 +1,30 @@
 class Api::V1::StudentsController < Api::V1::ApplicationController
   before_action :set_student, only: %i[ show update destroy ]
 
-  # GET /students
+  # GET api/v1/students
   def index
     @students = Student.all
 
     render json: @students
   end
 
-  # GET /students/1
+  # GET api/v1/students/1
   def show
     render json: @student
   end
 
-  # POST /students
+  # POST api/v1/students
   def create
     @student = Student.new(student_params)
 
     if @student.save
-      render json: @student, status: :created, location: @student
+      render json: @student, status: :created
     else
       render json: @student.errors, status: :unprocessable_content
     end
   end
 
-  # PATCH/PUT /students/1
+  # PATCH/PUT api/v1/students/1
   def update
     if @student.update(student_params)
       render json: @student
@@ -33,9 +33,10 @@ class Api::V1::StudentsController < Api::V1::ApplicationController
     end
   end
 
-  # DELETE /students/1
+  # DELETE api/v1/students/1
   def destroy
     @student.destroy!
+    head :no_content
   end
 
   private
