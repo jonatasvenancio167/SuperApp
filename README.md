@@ -1,284 +1,153 @@
 # Agenda Edu — API de Comunicados Escolares
 
-API REST para um sistema de comunicados escolares, desenvolvida como parte do teste técnico do time de Comunicação da Agenda Edu.
+API REST completa para um sistema de gestão de comunicados escolares, desenvolvida para processamento de alto volume e performance.
 
 ---
 
-## Stack
+## 🛠 Stack Tecnológica
 
-- **Ruby 3.3** + **Rails 7.2** (API only)
-- **PostgreSQL 16** — banco principal
-- **Redis 7** — backend do Sidekiq
-- **Sidekiq 7** — processamento assíncrono de envios
-- **Blueprinter** — serialização de respostas JSON
-- **Kaminari** — paginação
-- **Faker** — geração de dados para seeds
-- **Docker + Docker Compose** — ambiente de desenvolvimento
+- **Ruby 3.3.0** + **Rails 7.2** (API mode)
+- **PostgreSQL 16** — Banco de dados relacional principal
+- **Redis 7** — Backend para Sidekiq e cache
+- **Sidekiq 7** — Processamento assíncrono de disparos em background
+- **Blueprinter** — Serialização JSON performática
+- **Kaminari** — Paginação de recursos
+- **Faker** — Geração de dados sintéticos para testes e seeds
+- **Docker + Docker Compose** — Orquestração completa do ambiente
 
 ---
 
-## Configuração e execução
+## 🚀 Configuração e Execução
 
 ### Pré-requisitos
 
-- Docker
-- Docker Compose
+- Docker & Docker Compose instalados.
 
-### Subindo o projeto
+### Subindo o ambiente
 
 ```bash
 # 1. Clone o repositório
 git clone <url-do-repositorio>
-cd agenda-edu
+cd SuperApp
 
-# 2. Copie o arquivo de variáveis de ambiente
+# 2. Configure as variáveis de ambiente
 cp .env.example .env
 
-# 3. Suba todos os containers
+# 3. Suba os containers (build e execução)
 docker compose up --build
 ```
 
-O entrypoint já roda as migrations automaticamente ao subir o serviço `web`.
+> [!NOTE]
+> O entrypoint do serviço `web` executa automaticamente `bin/rails db:prepare` ao subir, garantindo que o banco e as migrations estejam atualizados.
 
-### Populando o banco com dados de teste
+### Populando o banco (Volume Realista)
+
+Para testar a performance do sistema, utilize o seed que gera uma massa crítica de dados:
 
 ```bash
 docker compose run --rm web bundle exec rails db:seed
 ```
 
-O seed cria:
-- 3 escolas
-- ~51 turmas
-- 10.000 alunos
-- 15.000 responsáveis
-- Vínculos aluno ↔ turma e aluno ↔ responsável
-- Comunicados já enviados com logs de entrega (~65% lidos)
+**O que o seed entrega:**
+- **3 Escolas** (Namespace principal)
+- **~51 Turmas**
+- **10.000 Alunos**
+- **15.000 Responsáveis**
+- **Vínculos Complexos**: Aluno ↔ Turma e Aluno ↔ Responsável
+- **Histórico**: Comunicados enviados com ~65% de taxa de leitura simulada.
 
-Tempo estimado: **30–60 segundos** (usa `insert_all` em lotes de 1.000).
-
-### Comandos úteis
-
-```bash
-# Rails console
-docker compose run --rm web bundle exec rails console
-
-# Rodar migrations
-docker compose run --rm web bundle exec rails db:migrate
-
-# Ver status das migrations
-docker compose run --rm web bundle exec rails db:migrate:status
-
-# Rodar testes
-docker compose run --rm web bundle exec rspec
-
-# Ver rotas
-docker compose run --rm web bundle exec rails routes | grep api
-```
+Tempo estimado: **30-60 segundos** (otimizado com `insert_all` em lotes de 1.000).
 
 ---
 
-## Endpoints
+## 🛤 Endpoints da API
 
-Todos os endpoints do namespace `/api/v1` exigem o header `X-School-Id` com o UUID da escola.
+A maioria dos endpoints do namespace `/api/v1` exige o header `X-School-Id` com o UUID da escola para garantir o isolamento dos dados.
 
-```
+```http
 X-School-Id: <uuid-da-escola>
 ```
 
-### Escolas
+### 🏫 Escolas
+*Não exige X-School-Id*
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | GET | `/api/v1/schools` | Lista todas as escolas |
-| GET | `/api/v1/schools/:id` | Detalhe de uma escola |
+| GET | `/api/v1/schools/:id` | Detalhe de uma escola específica |
 
-### Turmas
+### 👥 Responsáveis (Guardians)
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/api/v1/guardians` | Lista todos os responsáveis da escola |
+| GET | `/api/v1/guardians/:id` | Detalhe de um responsável |
+
+### 🎓 Alunos e Turmas
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | GET | `/api/v1/classrooms` | Lista turmas da escola |
-| GET | `/api/v1/classrooms/:id` | Detalhe da turma com alunos |
+| GET | `/api/v1/classrooms/:id` | Detalhe da turma |
+| GET | `/api/v1/students` | Lista todos os alunos da escola |
 
-### Alunos
-
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/v1/students` | Lista alunos da escola (paginado) |
-
-### Comunicados
+### 📢 Comunicados (Announcements)
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| GET | `/api/v1/announcements` | Lista comunicados da escola |
-| POST | `/api/v1/announcements` | Cria um comunicado (rascunho) |
-| GET | `/api/v1/announcements/:id` | Detalhe + estatísticas |
-| PATCH | `/api/v1/announcements/:id` | Atualiza (só em `draft`) |
+| GET | `/api/v1/announcements` | Lista comunicados (Suporta `page` e `per_page`) |
+| GET | `/api/v1/announcements/:id` | Detalhe do comunicado + estatísticas básicas |
+| POST | `/api/v1/announcements` | Cria um novo comunicado (Status: `draft`) |
+| PATCH | `/api/v1/announcements/:id` | Atualiza comunicado (Apenas se status for `draft`) |
 | DELETE | `/api/v1/announcements/:id` | Remove o comunicado |
-| POST | `/api/v1/announcements/:id/send` | Dispara o envio |
-| GET | `/api/v1/announcements/:id/stats` | Estatísticas de leitura |
+| POST | `/api/v1/announcements/:id/send` | Dispara o job de envio (Retorna `202 Accepted`) |
+| GET | `/api/v1/announcements/:id/stats` | Estatísticas detalhadas de entrega |
+| GET | `/api/v1/announcements/:id/delivery_logs` | Lista logs de entrega (Amostra de 10) |
 
-### Logs de entrega
+### 📑 Logs de Entrega
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| POST | `/api/v1/delivery_logs/:id/read` | Marca comunicado como lido |
+| POST | `/api/v1/delivery_logs/:id/read` | Marca o comunicado como lido pelo responsável |
 
-### Exemplos de request
+---
 
-**Criar comunicado para toda a escola:**
-```json
-POST /api/v1/announcements
-{
-  "announcement": {
-    "title": "Reunião de pais e mestres",
-    "content": "Convidamos todos os responsáveis para a reunião...",
-    "scope": "school"
-  }
-}
-```
+## 🏗 Arquitetura e Decisões Técnicas
 
-**Criar comunicado para turmas específicas:**
-```json
-POST /api/v1/announcements
-{
-  "announcement": {
-    "title": "Atividade especial - 5º ano",
-    "content": "Os alunos participarão de uma visita ao museu...",
-    "scope": "classrooms",
-    "classroom_ids": ["uuid-da-turma-1", "uuid-da-turma-2"]
-  }
-}
-```
+### Processamento em Lote e Assíncrono
+O core do sistema é o envio de comunicados. Para evitar bloqueios em disparos para 15.000+ destinatários:
+1. **Sidekiq**: O envio é delegado ao `AnnouncementDispatchJob`.
+2. **Bulk Insert**: Utilizamos `insert_all!` em lotes de 1.000 registros para criar os `DeliveryLog`s, reduzindo drasticamente o overhead do banco de dados.
 
-**Criar comunicado para alunos específicos:**
-```json
-POST /api/v1/announcements
-{
-  "announcement": {
-    "title": "Comunicado individual",
-    "content": "Solicitamos a presença do responsável na secretaria...",
-    "scope": "students",
-    "student_ids": ["uuid-do-aluno"]
-  }
-}
-```
+### Idempotência e Resiliência
+- O job de disparo verifica duplicatas antes da inserção, garantindo que retries do Sidekiq não gerem cobranças ou logs duplicados.
+- **RecipientResolver**: Garante unicidade de destinatários mesmo que um responsável possua múltiplos filhos na mesma escola/turma.
 
-**Resposta das estatísticas:**
-```json
-GET /api/v1/announcements/:id/stats
-{
-  "total": 4823,
-  "read": 3142,
-  "unread": 1681,
-  "read_percentage": 65.15,
-  "status": "sent",
-  "sent_at": "2024-01-10T14:30:00.000Z"
-}
+### Padrões de Projeto
+- **Services**: Lógica de negócio isolada (`AnnouncementCreator`, `AnnouncementSender`).
+- **Queries**: Consultas complexas abstraídas em objetos (`AnnouncementStatsQuery`).
+- **Serializers**: Respostas JSON consistentes e rápidas com Blueprinter.
+
+---
+
+## 🛠 Comandos de Desenvolvimento
+
+```bash
+# Rodar a suíte de testes (RSpec)
+docker compose run --rm web bundle exec rspec
+
+# Acessar o Rails Console
+docker compose run --rm web bundle exec rails c
+
+# Monitorar Sidekiq
+# Acesse: http://localhost:3000/sidekiq
 ```
 
 ---
 
-## Modelagem
+## 📈 Melhorias Futuras
 
-```
-schools
-  └── classrooms (has many)
-  └── announcements (has many)
-
-students
-  └── classrooms (many-to-many via student_classrooms)
-  └── guardians  (many-to-many via student_guardians)
-
-announcements
-  ├── scope: school | classrooms | students
-  ├── status: draft → sending → sent
-  ├── classrooms (many-to-many via announcement_classrooms)
-  ├── students   (many-to-many via announcement_students)
-  └── delivery_logs (has many)
-
-delivery_logs
-  ├── announcement (belongs to)
-  ├── guardian     (belongs to)
-  ├── read: boolean
-  └── read_at: datetime
-```
-
----
-
-## Decisões técnicas
-
-### Processamento assíncrono com Sidekiq
-
-O envio de comunicados é o ponto mais crítico de performance. Um comunicado para "toda a escola" pode gerar 15.000+ `DeliveryLog`s de uma vez. Processar isso na thread do request travaria a aplicação.
-
-A solução: o endpoint `POST /send` apenas muda o status para `sending` e enfileira o `AnnouncementDispatchJob`. A resposta é devolvida em milissegundos com `202 Accepted`. O processamento pesado acontece no Sidekiq em background.
-
-### Bulk insert em lotes
-
-Dentro do job, os `DeliveryLog`s são criados com `insert_all!` em lotes de 1.000 registros:
-
-```
-15.000 responsáveis / 1.000 por lote = 15 queries
-vs.
-15.000 INSERTs individuais
-```
-
-Diferença de 10–100x no tempo de execução. O mesmo padrão é usado no `seeds.rb` — popular 10.000 alunos leva menos de 60 segundos.
-
-### Idempotência no job
-
-Antes de criar os logs, o job verifica quais `guardian_ids` já têm `DeliveryLog` para aquele comunicado e pula esses. Isso garante que retries do Sidekiq (por timeout ou falha) não geram registros duplicados.
-
-### RecipientResolver com DISTINCT
-
-Um responsável pode ter dois filhos na mesma escola. Sem `DISTINCT`, ele receberia dois `DeliveryLog`s para o mesmo comunicado. O `RecipientResolver` usa `SELECT DISTINCT guardian_id` com JOIN nas tabelas de vínculo, garantindo unicidade antes do `insert_all!`.
-
-### Índices estratégicos
-
-A tabela `delivery_logs` é a que mais cresce em volume. Os índices foram escolhidos para cobrir as queries mais frequentes:
-
-- `(announcement_id, guardian_id)` UNIQUE — evita duplicatas no nível do banco
-- `(announcement_id, read)` — usado pela query de estatísticas com `GROUP BY read`; o Postgres resolve com index scan sem tocar na tabela
-- `(guardian_id)` — para o responsável listar seus comunicados pendentes
-
-### Separação de responsabilidades
-
-```
-Controllers    → recebem a request, delegam, devolvem a response
-Services       → regras de negócio (AnnouncementCreator, AnnouncementSender, RecipientResolver)
-Jobs           → processamento pesado em background (AnnouncementDispatchJob)
-Queries        → consultas complexas isoladas (AnnouncementStatsQuery)
-Serializers    → formatação da resposta JSON (Blueprinter)
-Models         → validações, associações, scopes
-```
-
-### Máquina de estados do comunicado
-
-```
-draft → sending → sent
-```
-
-A transição `draft → sending` acontece na thread do request (síncrona, imediata). A transição `sending → sent` acontece dentro do job ao finalizar. Em caso de erro no job, o status volta para `draft` para permitir reenvio.
-
----
-
-## O que eu faria com mais tempo
-
-- **Action Cable** para notificar o frontend em tempo real quando o status mudar de `sending` para `sent`
-- **Testes de integração** cobrindo o fluxo completo: criar → enviar → verificar delivery_logs → marcar como lido → verificar estatísticas
-- **Rate limiting** com `rack-attack` nos endpoints de envio
-- **Endpoint de listagem de delivery_logs** por responsável, para o app mobile consultar comunicados pendentes
-- **Soft delete** nos comunicados com `discarded_at` em vez de destruição permanente
-- **Upload de anexos** com Active Storage + S3
-
----
-
-## Monitoramento
-
-O Sidekiq Web UI está disponível em `http://localhost:3000/sidekiq` e permite acompanhar filas, jobs em processamento, retries e jobs com falha em tempo real.
-
----
-
-## Collection de API
-
-O arquivo `insomnia_collection.json` na raiz do projeto contém todos os endpoints configurados com variáveis de ambiente. Importe no Insomnia via `File → Import → From File`.
+- [ ] **Webhooks/Action Cable**: Notificação em tempo real do progresso de envio.
+- [ ] **Soft Delete**: Implementação de `discarded_at` para recuperação de dados.
+- [ ] **Anexos**: Integração com Active Storage + S3 para arquivos nos comunicados.
+- [ ] **Audit Log**: Rastreabilidade de quem criou/editou cada comunicado.
