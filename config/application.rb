@@ -30,9 +30,9 @@ module Superapp
     config.api_only = true
 
     config.autoload_paths += %W[
-      #{root}/app/services
-      #{root}/app/queries
-      #{root}/app/serializers
+      #{config.root}/app/services
+      #{config.root}/app/queries
+      #{config.root}/app/serializers
     ]
   end
 end
