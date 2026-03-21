@@ -12,5 +12,6 @@ class AnnouncementSerializer < Blueprinter::Base
     end
 
     association :classrooms, blueprint: ClassroomSerializer
+    association :delivery_logs, blueprint: DeliveryLogSerializer
   end
 end

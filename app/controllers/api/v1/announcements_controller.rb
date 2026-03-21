@@ -1,5 +1,5 @@
 class Api::V1::AnnouncementsController < Api::V1::ApplicationController
-  before_action :set_announcement, only: %i[ show update destroy send_announcement stats ]
+  before_action :set_announcement, only: %i[ show update destroy send_announcement stats delivery_logs]
 
   # GET /api/v1/announcements
   def index
@@ -67,6 +67,18 @@ class Api::V1::AnnouncementsController < Api::V1::ApplicationController
   # GET /api/v1/announcements/:id/stats
   def stats
     render json: AnnouncementStatsQuery.call(@announcement)
+  end
+
+  # GET /api/v1/announcements/:id/delivery_logs
+  def delivery_logs
+    logs = @announcement.delivery_logs
+                        .includes(:guardian)
+                        .limit(10)
+
+    render json: logs.as_json(
+      only: [:id, :read, :read_at],
+      include: { guardian: { only: [:id, :name, :email] } }
+    )
   end
 
   private
