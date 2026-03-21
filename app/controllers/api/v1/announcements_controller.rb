@@ -29,7 +29,7 @@ class Api::V1::AnnouncementsController < Api::V1::ApplicationController
     if result.success?
       render json: AnnouncementSerializer.render(result.announcement), status: :created
     else
-      render json: { errors: result.errors }, status: :unprocessable_content
+      render json: { error: result.error }, status: :unprocessable_entity
     end
   end
 
