@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_03_19_012549) do
+ActiveRecord::Schema[7.2].define(version: 2026_03_21_164329) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pgcrypto"
   enable_extension "plpgsql"
@@ -86,6 +86,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_19_012549) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["classroom_id"], name: "index_student_classrooms_on_classroom_id"
+    t.index ["student_id", "classroom_id"], name: "index_student_classrooms_on_student_id_and_classroom_id", unique: true
     t.index ["student_id"], name: "index_student_classrooms_on_student_id"
   end
 
@@ -95,6 +96,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_03_19_012549) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["guardian_id"], name: "index_student_guardians_on_guardian_id"
+    t.index ["student_id", "guardian_id"], name: "index_student_guardians_on_student_id_and_guardian_id", unique: true
     t.index ["student_id"], name: "index_student_guardians_on_student_id"
   end
 
