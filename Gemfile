@@ -11,7 +11,7 @@ gem "puma", ">= 5.0"
 # Use Redis adapter to run Action Cable in production
 gem "redis", ">= 4.0.1"
 gem "sidekiq", "~> 7.0"
-gem "connection_pool", "~> 2.4"
+gem "connection_pool", "~> 3.0"
 gem "blueprinter", "~> 1.0"
 gem "kaminari", "~> 1.2"
 gem "dotenv-rails", "~> 3.1"
