@@ -1,4 +1,6 @@
 class RecipientResolver
+  CACHE_TTL = 5.minutes
+
   def self.call(announcement)
     new(announcement).call
   end
@@ -8,22 +10,27 @@ class RecipientResolver
   end
  
   def call
-    case @announcement.scope
-    when "school"      then resolve_school
-    when "classrooms"  then resolve_classrooms
-    when "students"    then resolve_students
-    else []
+    Rails.cache.fetch(cache_key, expires_in: CACHE_TTL) do
+      case @announcement.scope
+      when "school"      then resolve_school
+      when "classrooms"  then resolve_classrooms
+      when "students"    then resolve_students
+      else []
+      end
     end
   end
 
   private
  
+  def cache_key
+    "recipient_resolver/#{@announcement.scope}/#{scope_identifier}/v1"
+  end
+
   def resolve_school
-    Guardian
-      .joins(students: :classrooms)
-      .where(classrooms: { school_id: @announcement.school_id })
-      .distinct
-      .pluck(:id)
+    classrooms = Classroom.where(school_id: @announcement.school_id)
+                          .includes(students: :guardians)
+ 
+    extract_guardian_ids(classrooms)
   end
  
   # Responsáveis dos alunos das turmas selecionadas
@@ -34,11 +41,10 @@ class RecipientResolver
  
     return [] if classroom_ids.empty?
  
-    Guardian
-      .joins(students: :classrooms)
-      .where(classrooms: { id: classroom_ids })
-      .distinct
-      .pluck(:id)
+    classrooms = Classroom.where(id: classroom_ids)
+                          .includes(students: :guardians)
+                        
+    extract_guardian_ids(classrooms)
   end
  
   # Responsáveis dos alunos selecionados diretamente
@@ -49,10 +55,25 @@ class RecipientResolver
  
     return [] if student_ids.empty?
  
-    Guardian
-      .joins(:students)
-      .where(students: { id: student_ids })
-      .distinct
-      .pluck(:id)
+    students = Student.where(id: student_ids)
+                      .includes(:guardians)
+
+    students.flat_map { |s| s.guardians.map(&:id) }.uniq
+  end
+
+  def extract_guardian_ids(classrooms)
+    classrooms
+      .flat_map { |classroom| classroom.students }
+      .flat_map { |student| student.guardians }
+      .map(&:id)
+      .uniq
+  end
+
+  def scope_identifier
+    case @announcement.scope
+    when "school"     then @announcement.school_id
+    when "classrooms" then @announcement.id
+    when "students"   then @announcement.id
+    end
   end
 end
