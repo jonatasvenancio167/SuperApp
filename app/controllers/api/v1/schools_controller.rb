@@ -1,5 +1,6 @@
 class Api::V1::SchoolsController < Api::V1::ApplicationController
   before_action :set_school, only: %i[ show update destroy ]
+  skip_before_action :set_current_school 
 
   # GET api/v1/schools
   def index
